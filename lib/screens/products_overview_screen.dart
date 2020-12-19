@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,18 +5,42 @@ import '../widgets/product_grid.dart';
 import '../screens/cart_screen.dart';
 import '../widgets/badge.dart';
 import '../widgets/main_drawer.dart';
+import '../providers/products_provider.dart';
+import '../providers/product.dart';
 import '../providers/cart.dart';
 
 enum FilterOption { Favorites, All }
 
 class ProductOverviewScreen extends StatefulWidget {
-  static const rounteName ='/';
+  static const rounteName = '/';
   @override
   _ProductOverviewScreenState createState() => _ProductOverviewScreenState();
 }
 
 class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
   var _showFavortiesOnly = false;
+  var _isInit = true;
+  var _isLoad = false;
+
+  @override
+  void didChangeDependencies() async {
+    if (_isInit) {
+      setState(() {
+        _isLoad = true;
+      });
+      Provider.of<ProductsProvider>(context, listen: false)
+          .fetchAndSetProducts()
+          .then((_) {
+        setState(() {
+          _isLoad = false;
+        });
+      });
+    }
+    _isInit = false;
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,8 +91,11 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
           ),
         ],
       ),
-      body: ProductsGrid(_showFavortiesOnly),
+      body: _isLoad
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : ProductsGrid(_showFavortiesOnly),
     );
   }
 }
-
